@@ -1,5 +1,6 @@
 #include "wayland.hpp"
 #include "xdg-shell.hpp"
+#include "xdg-decoration-unstable-v1.hpp"
 
 #include <print>
 #include <chrono>
@@ -46,6 +47,13 @@ public:
                 m_shm = std::make_unique<CCWlShm>(
                     static_cast<wl_proxy*>(wl_registry_bind(reinterpret_cast<wl_registry*>(m_registry->proxy()), name,
                                                             &wl_shm_interface, 1))
+                );
+            }
+            else if (iface == "zxdg_decoration_manager_v1")
+            {
+                m_decorationManager = std::make_unique<CCZxdgDecorationManagerV1>(
+                    static_cast<wl_proxy*>(wl_registry_bind(reinterpret_cast<wl_registry*>(m_registry->proxy()), name,
+                                                            &zxdg_decoration_manager_v1_interface, 1))
                 );
             }
         });
@@ -96,6 +104,14 @@ public:
         m_xdgToplevel->sendSetAppId("wayland-resize-meter");
         m_xdgToplevel->sendSetMinSize(200, 200);
 
+        if (m_decorationManager)
+        {
+            m_toplevelDecoration = std::make_unique<CCZxdgToplevelDecorationV1>(
+                m_decorationManager->sendGetToplevelDecoration(m_xdgToplevel->proxy())
+            );
+            m_toplevelDecoration->sendSetMode(ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+        }
+
         m_surface->sendCommit();
     }
 
@@ -124,6 +140,8 @@ private:
     std::unique_ptr<CCWlSurface> m_surface;
     std::unique_ptr<CCXdgSurface> m_xdgSurface;
     std::unique_ptr<CCXdgToplevel> m_xdgToplevel;
+    std::unique_ptr<CCZxdgDecorationManagerV1> m_decorationManager;
+    std::unique_ptr<CCZxdgToplevelDecorationV1> m_toplevelDecoration;
     std::unique_ptr<CCWlShmPool> m_pool;
     std::unique_ptr<CCWlBuffer> m_buffer;
 

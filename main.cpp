@@ -83,9 +83,11 @@ public:
             }
 
             auto now = std::chrono::steady_clock::now();
-            if (now - m_lastTime >= 1s)
+            const std::chrono::duration<double> elapsed = now - m_lastTime;
+            if (elapsed >= 1s)
             {
-                std::println("Resize events: {}/s", std::exchange(m_resizeEvents, 0));
+                const double rate = std::exchange(m_resizeEvents, 0) / elapsed.count();
+                std::println("Resize events: {:.2f}/s", rate);
                 m_lastTime = now;
             }
         });

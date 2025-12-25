@@ -94,6 +94,7 @@ public:
         m_xdgToplevel->setClose([this](CCXdgToplevel*) { m_running = false; });
         m_xdgToplevel->sendSetTitle("Wayland Resize Meter");
         m_xdgToplevel->sendSetAppId("wayland-resize-meter");
+        m_xdgToplevel->sendSetMinSize(200, 200);
 
         m_surface->sendCommit();
     }
